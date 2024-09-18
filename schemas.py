@@ -5,16 +5,12 @@ from datetime import datetime
 
 
 class Post(BaseModel):
-    id: UUID
     title: str = Field(min_length=1)
     author: str = Field(min_length=1, max_length=50)
     text: str
-    data: datetime
-
 
 # class Author(BaseModel):
 #     id: UUID
 #     username: str
 #     email: EmailStr
 #     date_of_birth: str
-
