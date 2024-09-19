@@ -4,13 +4,15 @@ from sqlalchemy.orm import relationship
 from datebase import Base
 
 
-class Post(Base):
+class Posts(Base):
     __tablename__ = "Post"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     author = Column(String, index=True)
     text = Column(String, index=True)
+
+
 
     # owner_id = Column(Integer, ForeignKey("users.id"))
 

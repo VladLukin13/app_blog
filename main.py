@@ -1,66 +1,46 @@
 from fastapi import FastAPI, HTTPException, Depends
 from schemas import Post
-from uuid import UUID
 import models
-from  datebase import engine, SessionLocal
+import crud
+from datebase import engine, SessionLocal, get_db
 from sqlalchemy.orm import Session
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Blog"
 )
 
-models.Base.metadata.create_all(bind=engine)
-
-
-def get_db():
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
-
 
 @app.get("/")
 def get_posts(db: Session = Depends(get_db)):
-    return db.query(models.Post).all()
+    return crud.get_posts(db)
 
 
 @app.post("/")
 def create_post(post: Post, db: Session = Depends(get_db)):
-    post_model = models.Post()
-    post_model.title = post.title
-    post_model.author = post.author
-    post_model.text = post.text
-
-    db.add(post_model)
-    db.commit()
-
-    return post
+    return crud.create_post(post, db)
 
 
 @app.put("/{post_id}")
-def update_post(post_id: UUID, post: Post):
-    count = 0
-    for x in POSTS:
-        count += 1
-        if x.id == post_id:
-            POSTS[count - 1] = post
-            return POSTS[count - 1]
-    raise HTTPException(
-        status_code=404,
-        detail=f"ID {post_id} не существует",
-    )
+def update_post(post_id: int, post: Post, db: Session = Depends(get_db)):
+    post_model = crud.update_post(post_id_in=post_id, post=post, db=db)
+
+    if post_model is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"ID {post_id} не существует",
+        )
+
+    return post_model
 
 
 @app.delete("/{post_id}")
-def delete_book(post_id: UUID, post: Post):
-    count = 0
-    for x in POSTS:
-        count += 1
-        if x.id == post_id:
-            del POSTS[count - 1]
-            return f"{post_id} удаен"
-    raise HTTPException(
-        status_code=404,
-        detail=f"ID {post_id} не существует",
-    )
+def delete_post(post_id: int, post: Post, db: Session = Depends(get_db)):
+    model_post = crud.get_post(post_id_input=post_id, db=db)
+    if model_post is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"ID {post_id} не существует",
+        )
+    crud.delete_post(post_id_input=post_id, db=db)
